@@ -99,11 +99,26 @@ def Inf_irreductible_set(df):
 
 
 
+def obtain_concepts(df):
+
+    A=df.columns.tolist()
+    B=df.index.tolist()
+
+    list_ext=[(a,extension(df,[a])) for a in A]
+    list_ext_sorted=sorted(list_ext,key=lambda x: len(x[1]),reverse=True)
+
+    
+
+    
+    #[mu(x) for x in list_atribs if set(extension[x]) != [set(extension[a]) for a in list_atribs if  ]]
+
+    return list_ext_sorted
+
+
+
 df=obtain_matrix('./Tables/peces.txt',['Carpa','Escatofagus','Sargo','Dorada','Anguila'])
 
-print(df.columns.tolist)
 
-print(mu(df,'Fluvial'))
-
+print(obtain_concepts(df))
 
 
