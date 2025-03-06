@@ -1,2 +1,2 @@
 # FCA_py_implementation
-A python implementation of Format Concept Analysis.
+# $\color{red}{\text{This README is not complete yet.}}$
