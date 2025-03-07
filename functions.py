@@ -105,18 +105,111 @@ def obtain_concepts(df):
     B=df.index.tolist()
 
     list_ext=[(a,extension(df,[a])) for a in A]
+
     list_ext_sorted=sorted(list_ext,key=lambda x: len(x[1]),reverse=True)
 
-    
+
+    sol=[]
+
+    #First Row (B)
+
+    #Optimized search of an atribute whose extension is equal to B 
+    #(it looks into the list sorted, if an extension of an attribute is not B, it does not look further)
+
+    control=True
+    i=0
+    temp_list=[]
+
+    while control and i<len(list_ext_sorted):
+        pair=list_ext_sorted[i]
+        if pair[1]==B:
+            temp_list.append(pair[0])
+        else:
+            control=False
+        i=i+1
+        
+        a=temp_list
+
+    sol.append((a,B))
+
+    #If there is some attributes whose extension is B, we wont to drop them from the list.
+    if temp_list:
+        if len(a)==len(A):
+            list_ext_sorted=[]
+        else:
+            list_ext_sorted=list_ext_sorted[len(a):]
+
+    print(list_ext_sorted)
+
+    while list_ext_sorted:
+
+        element=list_ext_sorted[0]
+        element_objects=element[1]
+
+        control=True
+        i=0
+        while control:
+            if equal_list(sol[i][1],element_objects):
+
+                sol[i]=(sol[i][0]+[element[0]],sol[i][1])
+
+
+                control=False
+
+            i=i+1
+
+            if i==len(sol) and control:
+                control=False
+                sol.append(([element[0]],element_objects))
+
+                list_intersections=[]
+                current_objects=[]
+                for j in range(0,len(sol)):
+
+                    current_objects.append(sol[j][1])
+                    list_intersections.append(intersection(element_objects,sol[j][1]))
+                    
+                    list_intersections_filtered=[]
+
+                    for w in range(0,len(list_intersections)):
+                        inter=list_intersections[w]
+                        control=True
+                        for z in range(0,len(current_objects)):
+                            if equal_list(inter,current_objects(z)):
+                                control=False
+                        if control:
+                            list_intersections_filtered.append(inter)
+                for i in range(0,list_intersections_filtered):
+                    sol.append(([],list_intersections_filtered[i]))
+                        
+
+
+
+        list_ext_sorted.pop(0)
+
+
+
+
+
+
 
     
-    #[mu(x) for x in list_atribs if set(extension[x]) != [set(extension[a]) for a in list_atribs if  ]]
 
-    return list_ext_sorted
-
+    return sol
 
 
-df=obtain_matrix('./Tables/peces.txt',['Carpa','Escatofagus','Sargo','Dorada','Anguila'])
+def equal_list(list1,list2):
+    return set(list1)==set(list2)
+
+def intersection(list1,list2):
+    return list(set(list1) & set(list2))
+
+def union(list1,list2):
+    return list(set(list1) | set(list2))
+
+
+
+df=obtain_matrix('./Tables/test1.txt',['Carpa','Escatofagus','Sargo','Dorada','Anguila'])
 
 
 print(obtain_concepts(df))
