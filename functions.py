@@ -215,3 +215,5 @@ df=obtain_matrix('./Tables/test1.txt',['Carpa','Escatofagus','Sargo','Dorada','A
 print(obtain_concepts(df))
 
 
+
+#ey
