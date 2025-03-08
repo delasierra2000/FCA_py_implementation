@@ -1,4 +1,9 @@
 import pandas as pd
+from tabulate import tabulate
+
+###-----------------------------------
+### Import txt into pandas dataframe
+###-----------------------------------
 
 def obtain_matrix(path,list="default"):
 
@@ -31,6 +36,7 @@ def obtain_matrix(path,list="default"):
 
 #### NOTA: ESTAS FUNCIONES SIRVEN CON EL DATAFRAME CUYOS ÍNDICES SON LOS NOMBRES DE LOS OBJETOS.
 
+
 #Función auxiliar que al introducir una lista, devuelve 1 si solo esta compuesta por 1. En otro caso devuelve 0.
 def list_to_01(list):
 
@@ -40,6 +46,12 @@ def list_to_01(list):
         sol=0
 
     return sol
+
+
+###-----------------------------------
+### Extension and intension
+###-----------------------------------
+
 
 #Función que calcula la derivación de un subconjunto de atributos.
 def extension(df,atrib_list):
@@ -77,6 +89,10 @@ def intension(df,objs_list):
 
     return sol
 
+###-----------------------------------
+### Gamma and Mu functions
+###-----------------------------------
+
 
 def gamma(df,b):
 
@@ -99,19 +115,26 @@ def Inf_irreductible_set(df):
 
 
 
+
+###-----------------------------------
+### ALGORITHM AND RELATED FUNCTIONS 
+###-----------------------------------
+
+
 def obtain_concepts(df):
 
     A=df.columns.tolist()
     B=df.index.tolist()
 
-    list_ext=[(a,extension(df,[a])) for a in A]
+    list_ext=[[a,extension(df,[a])] for a in A]
 
     list_ext_sorted=sorted(list_ext,key=lambda x: len(x[1]),reverse=True)
 
 
     sol=[]
 
-    #First Row (B)
+
+    # FIRST ROW (B)
 
     #Optimized search of an atribute whose extension is equal to B 
     #(it looks into the list sorted, if an extension of an attribute is not B, it does not look further)
@@ -130,73 +153,66 @@ def obtain_concepts(df):
         
         a=temp_list
 
-    sol.append((a,B))
+    sol.append([a,B])
 
-    #If there is some attributes whose extension is B, we wont to drop them from the list.
+
+    # NEXT ROWS
+
+    #If there is some attributes whose extension is B, we want to drop them from the list.
     if temp_list:
         if len(a)==len(A):
             list_ext_sorted=[]
         else:
             list_ext_sorted=list_ext_sorted[len(a):]
 
-    print(list_ext_sorted)
+    #We take the attribute and its extension from the sorted filtered list one by one. 
+    for i in range(0,len(list_ext_sorted)):
 
-    while list_ext_sorted:
+        element=list_ext_sorted[i]
 
-        element=list_ext_sorted[0]
-        element_objects=element[1]
+        attribute=element[0]
+        att_extension=element[1]
 
-        control=True
-        i=0
-        while control:
-            if equal_list(sol[i][1],element_objects):
+        #Check if att_extension is equal to a subset of objects that's already in the table.
+        check_not_equal=True
+        for j in range(0,len(sol)):
+            if equal_list(att_extension,sol[j][1]):
+                sol[j][0]=sol[j][0]+[attribute]
+                check_not_equal=False
 
-                sol[i]=(sol[i][0]+[element[0]],sol[i][1])
+        #If it was not equal to any subset of objects, add the pair to the table
+        #and add all the new intersections.
 
+        if check_not_equal:
+            sol.append([[attribute],att_extension])
 
-                control=False
+            objects_in_table=[sorted(x[1]) for x in sol]
+            all_intersections=[intersection(att_extension,x) for x in objects_in_table]
 
-            i=i+1
+            new_intersections=list_no_repeat([x for x in all_intersections if sorted(x) not in objects_in_table])
 
-            if i==len(sol) and control:
-                control=False
-                sol.append(([element[0]],element_objects))
-
-                list_intersections=[]
-                current_objects=[]
-                for j in range(0,len(sol)):
-
-                    current_objects.append(sol[j][1])
-                    list_intersections.append(intersection(element_objects,sol[j][1]))
-                    
-                    list_intersections_filtered=[]
-
-                    for w in range(0,len(list_intersections)):
-                        inter=list_intersections[w]
-                        control=True
-                        for z in range(0,len(current_objects)):
-                            if equal_list(inter,current_objects(z)):
-                                control=False
-                        if control:
-                            list_intersections_filtered.append(inter)
-                for i in range(0,list_intersections_filtered):
-                    sol.append(([],list_intersections_filtered[i]))
-                        
-
-
-
-        list_ext_sorted.pop(0)
-
-
-
-
-
-
-
-    
+            if new_intersections:
+                for n in range(0,len(new_intersections)):
+                    sol.append([[],new_intersections[n]])
 
     return sol
 
+#Shows the result of the algorithm.
+def show_algorithm(df):
+
+    list=obtain_concepts(df)
+
+    rows=[tuple(x) for x in list]
+
+    table=pd.DataFrame(rows,columns=['ATTRIBUTES','OBJECTS'])
+
+    print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
+
+    return
+
+###-----------------------------------
+### List operations
+###-----------------------------------
 
 def equal_list(list1,list2):
     return set(list1)==set(list2)
@@ -207,13 +223,13 @@ def intersection(list1,list2):
 def union(list1,list2):
     return list(set(list1) | set(list2))
 
+def minus(list1,list2):
+    return list(set(list1) - set(list2))
+
+def list_no_repeat(list):
+    sol=[]
+    [sol.append(x) for x in list if x not in sol]
+    return sol
 
 
-df=obtain_matrix('./Tables/test1.txt',['Carpa','Escatofagus','Sargo','Dorada','Anguila'])
 
-
-print(obtain_concepts(df))
-
-
-
-#ey
