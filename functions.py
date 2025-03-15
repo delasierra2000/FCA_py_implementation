@@ -120,8 +120,7 @@ def Inf_irreductible_set(df):
 ### ALGORITHM AND RELATED FUNCTIONS 
 ###-----------------------------------
 
-
-def obtain_concepts(df):
+def algorithm(df):
 
     A=df.columns.tolist()
     B=df.index.tolist()
@@ -153,7 +152,7 @@ def obtain_concepts(df):
         
         a=temp_list
 
-    sol.append([a,B])
+    sol.append([a,B,None])
 
 
     # NEXT ROWS
@@ -184,27 +183,180 @@ def obtain_concepts(df):
         #and add all the new intersections.
 
         if check_not_equal:
-            sol.append([[attribute],att_extension])
+            
+            index_att=len(sol)
+            sol.append([[attribute],att_extension,None])
 
             objects_in_table=[sorted(x[1]) for x in sol]
-            all_intersections=[intersection(att_extension,x) for x in objects_in_table]
+            all_intersections=[[intersection(att_extension,x),[index_att,objects_in_table.index(x)]] for x in objects_in_table]
 
-            new_intersections=list_no_repeat([x for x in all_intersections if sorted(x) not in objects_in_table])
+            new_intersections=list_no_repeat_1([x for x in all_intersections if sorted(x[0]) not in objects_in_table])
 
             if new_intersections:
                 for n in range(0,len(new_intersections)):
-                    sol.append([[],new_intersections[n]])
+                    sol.append([[],new_intersections[n][0],new_intersections[n][1]])
 
     return sol
+
+
 
 #Shows the result of the algorithm.
 def show_algorithm(df):
 
-    list=obtain_concepts(df)
+    pd.set_option("display.max_columns", None)
+
+    list=algorithm(df)
+
+    rows=[tuple(x) for x in list]
+
+    table=pd.DataFrame(rows,columns=['ATTRIBUTES','OBJECTS','INTERSECTIONS'])
+
+    print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
+
+
+    return
+
+
+###-----------------------------------
+### OBTAIN FULL CONCEPTS
+###-----------------------------------
+
+# Funtion to obtain all concepts
+def construct_concepts(df):
+
+    # Aplies the algorithm
+    list_alg=algorithm(df)
+
+    # Makes union of attributes on those concepts whose objects were obtained by intersections of objects.
+    for i in range(0,len(list_alg)):
+
+        if list_alg[i][2]!=None:
+
+            indexes=list_alg[i][2]
+
+            list_alg[i][0]=list_no_repeat(sum([list_alg[j][0] for j in indexes],[]))
+
+    return list_alg
+
+
+
+def show_concepts(df):
+
+    pd.set_option("display.max_columns", None)
+
+    list=construct_concepts(df)
+
+    rows=[tuple(x) for x in list]
+
+    table=pd.DataFrame(rows,columns=['ATTRIBUTES','OBJECTS','INTERSECTIONS'])
+
+    print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
+
+    table.style
+
+    return
+
+
+###-----------------------------------
+### ATTRIBUTE CLASIFICATION
+###-----------------------------------
+
+def clasify_att(df):
+
+    # Algorithm to obtain concepts
+    concepts=algorithm(df)
+
+    # Filtration of rows which first element (Atts) is not void.
+    concepts_filtered=[x for x in concepts if x[0]]
+
+    # Check if a concept is obtained by intersections
+    att_I=[x[0] for x in concepts_filtered if x[2]!=None]
+    I=list_no_repeat(sum(att_I,[]))
+
+    # Check if a concept is not obtained by intersections and the list of attributes has only 1 element.
+    att_K=[x[0] for x in concepts_filtered if x[2]==None and len(x[0])==1]
+    K=list_no_repeat(sum(att_K,[]))
+
+    # Check if a concept is not obtained by intersections and the list of attributes has more than 1 element.
+    att_C=[x[0] for x in concepts_filtered if x[2]==None and len(x[0])!=1]
+    C=list_no_repeat(sum(att_C,[]))
+
+    return [K,C,I]
+
+def show_att_clasification(df):
+
+    list=clasify_att(df)
+
+    data={'Absolutely Necessary': [list[0]],
+          'Relatively Necessary': [list[1]],
+          'Unnecessary': [list[2]]}
+
+    pd.set_option("display.max_columns", None)
+    
+    table=pd.DataFrame(data)
+    table.index=['ATTRIBUTES']
+
+    print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
+
+    return
+
+
+###-----------------------------------
+### MEET IRREDUCIBLE
+###-----------------------------------
+
+def meet_irreducible(df):
+
+    list_objs=df.index.tolist()
+    concepts=construct_concepts(df)
+    M_f=[x[0:2] for x in concepts if x[2]==None and not equal_list(x[1],list_objs)]
+
+    return M_f
+
+def show_Mf(df):
+
+    list=meet_irreducible(df)
 
     rows=[tuple(x) for x in list]
 
     table=pd.DataFrame(rows,columns=['ATTRIBUTES','OBJECTS'])
+
+    print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
+
+    return
+
+###-------------------------------------------
+### OBJECT CLASIFICATION AND JOIN IRREDUCIBLE
+###-------------------------------------------
+
+def clasify_obj(df):
+
+    sol=clasify_att(df.T)
+
+    return sol
+
+def show_obj_clasification(df):
+
+    show_att_clasification(df.T)
+
+    return
+
+def join_irreducible(df):
+
+    sol=meet_irreducible(df.T)
+
+    return sol
+
+def show_Jf(df):
+
+    list=join_irreducible(df)
+
+    rows=[tuple(x) for x in list]
+
+    table=pd.DataFrame(rows,columns=['OBJECTS','ATTRIBUTES'])
+
+    table=table[['ATTRIBUTES','OBJECTS']]
+
 
     print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
 
@@ -230,6 +382,20 @@ def list_no_repeat(list):
     sol=[]
     [sol.append(x) for x in list if x not in sol]
     return sol
+
+def list_no_repeat_1(list):
+
+    sol=[]
+    checked=[]
+    for i in range(0,len(list)):
+        rep=list[i][0]
+        if rep not in checked:
+            checked.append(rep)
+            sol.append(list[i])
+
+
+    return sol
+
 
 
 
