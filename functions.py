@@ -235,6 +235,8 @@ def construct_concepts(df):
             indexes=list_alg[i][2]
 
             list_alg[i][0]=list_no_repeat(sum([list_alg[j][0] for j in indexes],[]))
+    
+    list_alg=[[x[1],x[0],x[2]] for x in list_alg]
 
     return list_alg
 
@@ -248,7 +250,7 @@ def show_concepts(df):
 
     rows=[tuple(x) for x in list]
 
-    table=pd.DataFrame(rows,columns=['ATTRIBUTES','OBJECTS','INTERSECTIONS'])
+    table=pd.DataFrame(rows,columns=['OBJECTS','ATTRIBUTES','INTERSECTIONS'])
 
     print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
 
@@ -319,7 +321,7 @@ def show_Mf(df):
 
     rows=[tuple(x) for x in list]
 
-    table=pd.DataFrame(rows,columns=['ATTRIBUTES','OBJECTS'])
+    table=pd.DataFrame(rows,columns=['OBJECTS','ATTRIBUTES'])
 
     print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
 
@@ -337,7 +339,18 @@ def clasify_obj(df):
 
 def show_obj_clasification(df):
 
-    show_att_clasification(df.T)
+    list=clasify_obj(df)
+
+    data={'Absolutely Necessary': [list[0]],
+          'Relatively Necessary': [list[1]],
+          'Unnecessary': [list[2]]}
+
+    pd.set_option("display.max_columns", None)
+    
+    table=pd.DataFrame(data)
+    table.index=['OBJECTS']
+
+    print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
 
     return
 
@@ -353,9 +366,9 @@ def show_Jf(df):
 
     rows=[tuple(x) for x in list]
 
-    table=pd.DataFrame(rows,columns=['OBJECTS','ATTRIBUTES'])
+    table=pd.DataFrame(rows,columns=['ATTRIBUTES','OBJECTS'])
 
-    table=table[['ATTRIBUTES','OBJECTS']]
+    table=table[['OBJECTS','ATTRIBUTES']]
 
 
     print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
