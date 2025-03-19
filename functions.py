@@ -222,25 +222,15 @@ def show_algorithm(df):
 ###-----------------------------------
 
 # Funtion to obtain all concepts
+
 def construct_concepts(df):
 
     # Aplies the algorithm
     list_alg=algorithm(df)
 
-    # Makes union of attributes on those concepts whose objects were obtained by intersections of objects.
-    for i in range(0,len(list_alg)):
+    sol= [[x[1],intension(df,x[1]),x[2]] for x in list_alg]
 
-        if list_alg[i][2]!=None:
-
-            indexes=list_alg[i][2]
-
-            list_alg[i][0]=list_no_repeat(sum([list_alg[j][0] for j in indexes],[]))
-    
-    list_alg=[[x[1],x[0],x[2]] for x in list_alg]
-
-    return list_alg
-
-
+    return sol
 
 def show_concepts(df):
 
@@ -248,15 +238,15 @@ def show_concepts(df):
 
     list=construct_concepts(df)
 
-    rows=[tuple(x) for x in list]
+    rows=[tuple(x[0:2]) for x in list]
 
-    table=pd.DataFrame(rows,columns=['OBJECTS','ATTRIBUTES','INTERSECTIONS'])
+    table=pd.DataFrame(rows,columns=['OBJECTS','ATTRIBUTES'])
 
     print(tabulate(table, headers='keys',tablefmt='grid',stralign='center',numalign='center'))
 
-    table.style
-
     return
+
+
 
 
 ###-----------------------------------
@@ -311,7 +301,7 @@ def meet_irreducible(df):
 
     list_objs=df.index.tolist()
     concepts=construct_concepts(df)
-    M_f=[x[0:2] for x in concepts if x[2]==None and not equal_list(x[1],list_objs)]
+    M_f=[x[0:2] for x in concepts if x[2]==None and not equal_list(x[0],list_objs)]
 
     return M_f
 
