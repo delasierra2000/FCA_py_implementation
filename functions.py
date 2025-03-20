@@ -366,6 +366,57 @@ def show_Jf(df):
     return
 
 ###-----------------------------------
+### Implications
+###-----------------------------------
+
+def satisfies(T,C,D):
+    sol=False
+    if not equal_list(intersection(C,T),C):
+        sol=True
+    if equal_list(intersection(D,T),D):
+        sol=True
+    return sol
+
+def set_satisfies(list_T,C,D):
+    
+    sol=True
+    for i in range(0,len(list_T)):
+        if not satisfies(list_T[i],C,D):
+            sol=False
+    return sol
+
+def valid(df,C,D):
+
+    C2=intension(df,extension(df,C))
+    sol=False
+    if equal_list(intersection(D,C2),D):
+        sol=True
+
+    return sol
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###-----------------------------------
 ### List operations
 ###-----------------------------------
 
